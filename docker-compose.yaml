@@ -23,7 +23,7 @@ services:
     ports:
       - "5000:5000"
     environment:
-      DATABASE_URL: "postgresql://postgres:M%21%40miheat2707@db:5432/getmo"
+      DATABASE_URL: "postgresql://postgres:M!@miheat2707@db:5432/getmo"
       JWT_SECRET: "supersecretgetmopassword123"
 
 volumes:
