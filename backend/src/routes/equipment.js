@@ -1,10 +1,12 @@
 import express from "express";
 import { prisma } from "../prisma.js";
+import { auth, adminOnly } from "../middleware/auth.js";
+
 
 const router = express.Router();
 
 // CREATE
-router.post("/", async (req, res) => {
+router.post("/", auth, adminOnly, async (req, res) => {
   const { name, description, price, stock, image_url } = req.body;
   try {
     const item = await prisma.equipment.create({
@@ -17,7 +19,7 @@ router.post("/", async (req, res) => {
 });
 
 // READ ALL
-router.get("/", async (req, res) => {
+router.get("/",  async (req, res) => {
   const items = await prisma.equipment.findMany();
   res.json(items);
 });
@@ -31,7 +33,7 @@ router.get("/:id", async (req, res) => {
 });
 
 // UPDATE
-router.put("/:id", async (req, res) => {
+router.put("/:id", auth, adminOnly, async (req, res) => {
   const data = req.body;
   const item = await prisma.equipment.update({
     where: { id: req.params.id },
@@ -41,7 +43,7 @@ router.put("/:id", async (req, res) => {
 });
 
 // DELETE
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", auth, adminOnly, async (req, res) => {
   await prisma.equipment.delete({ where: { id: req.params.id } });
   res.json({ message: "Deleted" });
 });
