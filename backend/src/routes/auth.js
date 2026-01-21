@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../prisma.js";
 
 const router = express.Router();
-
+// HAha
 // REGISTER
 router.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body;
