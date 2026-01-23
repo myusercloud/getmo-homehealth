@@ -2,22 +2,39 @@ import express from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { prisma } from "../prisma.js";
+import { auth, adminOnly } from "../middleware/auth.js";
 
 const router = express.Router();
+
+// GET ALL USERS (Admin Only)
+router.get("/users", auth, adminOnly, async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
+    });
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // REGISTER
 router.post("/register", async (req, res) => {
   const { name, email, password, role } = req.body;
 
   try {
-    // Check if email exists
     const existing = await prisma.user.findUnique({ where: { email } });
     if (existing) return res.status(400).json({ error: "Email already in use" });
 
-    // Hash password
     const hashed = await bcrypt.hash(password, 10);
 
-    // Create user
     const user = await prisma.user.create({
       data: {
         name,
@@ -44,7 +61,6 @@ router.post("/login", async (req, res) => {
     const match = await bcrypt.compare(password, user.password);
     if (!match) return res.status(400).json({ error: "Invalid email or password" });
 
-    // Create JWT
     const token = jwt.sign(
       { id: user.id, role: user.role },
       process.env.JWT_SECRET,
@@ -58,23 +74,3 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
-
-// GET ALL USERS (Admin Only)
-router.get("/users", auth, adminOnly, async (req, res) => {
-  try {
-    const users = await prisma.user.findMany({
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        role: true,
-        createdAt: true
-      }
-    });
-
-    res.json(users);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
