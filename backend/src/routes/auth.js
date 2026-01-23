@@ -58,3 +58,23 @@ router.post("/login", async (req, res) => {
 });
 
 export default router;
+
+// GET ALL USERS (Admin Only)
+router.get("/users", auth, adminOnly, async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        role: true,
+        createdAt: true
+      }
+    });
+
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
