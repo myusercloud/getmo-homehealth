@@ -15,7 +15,7 @@ router.get("/users", auth, adminOnly, async (req, res) => {
         name: true,
         email: true,
         role: true,
-        createdAt: true
+        created_at: true  
       }
     });
 
@@ -24,6 +24,7 @@ router.get("/users", auth, adminOnly, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // REGISTER
 router.post("/register", async (req, res) => {
