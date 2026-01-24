@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import equipmentRoutes from "./routes/equipment.js";
+import equipmentRoutes from "./routes/equipment.routes.js";
 import authRoutes from "./routes/auth.js";
 
 const app = express();
@@ -12,7 +12,6 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Getmo Backend (web)");
 });
 
-app.use("/auth", authRoutes);
-app.use("/equipment", equipmentRoutes);
+app.use("/api/equipment", equipmentRoutes);
 
 export default app;
