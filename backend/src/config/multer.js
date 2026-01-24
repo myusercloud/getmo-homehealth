@@ -1,12 +1,6 @@
 import multer from "multer";
-import { CloudinaryStorage } from "multer-storage-cloudinary";
-import cloudinary from "./cloudinary.js";
 
-const storage = new CloudinaryStorage({
-  cloudinary,
-  params: {
-    folder: "equipment_images",
-  },
+export const upload = multer({
+  storage: multer.memoryStorage(), // important for Supabase
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
 });
-
-export const upload = multer({ storage });

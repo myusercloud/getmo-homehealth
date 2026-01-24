@@ -1,24 +1,37 @@
-import prisma from "../../prisma/client.js";
+import { PrismaClient } from "@prisma/client";
+import { slugify } from "../utils/slugify.js";
+
+const prisma = new PrismaClient();
+
 
 export const EquipmentService = {
-  async create(data, images) {
+  async create(data, imageUrls) {
+    // Auto-generate slug from name
+    const slug = slugify(data.name);
+
     return prisma.equipment.create({
       data: {
         ...data,
+        slug,
+        specifications: data.specifications || {},
+
         images: {
-          create: images.map((url, index) => ({
+          create: imageUrls.map((url, index) => ({
             url,
             isPrimary: index === 0,
             sortOrder: index,
           })),
         },
       },
-      include: { images: true }
+      include: { images: true },
     });
   },
 
   async findAll() {
-    return prisma.equipment.findMany({ include: { images: true } });
+    return prisma.equipment.findMany({
+      include: { images: true },
+      orderBy: { created_at: "desc" },
+    });
   },
 
   async findOne(id) {
@@ -29,6 +42,11 @@ export const EquipmentService = {
   },
 
   async update(id, data) {
+    // Slug should update if the name changes
+    if (data.name) {
+      data.slug = slugify(data.name);
+    }
+
     return prisma.equipment.update({
       where: { id },
       data,
@@ -37,6 +55,14 @@ export const EquipmentService = {
   },
 
   async delete(id) {
-    return prisma.equipment.delete({ where: { id } });
-  }
+    // Must delete images first because of FK constraints
+    await prisma.equipmentImage.deleteMany({
+      where: { equipmentId: id },
+    });
+
+    // Now delete the equipment
+    return prisma.equipment.delete({
+      where: { id },
+    });
+  },
 };

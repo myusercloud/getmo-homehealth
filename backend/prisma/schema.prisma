@@ -39,10 +39,11 @@ model EquipmentImage {
   isPrimary    Boolean   @default(false)
   sortOrder    Int       @default(0)
 
-  equipment    Equipment @relation(fields: [equipmentId], references: [id])
+  equipment    Equipment @relation(fields: [equipmentId], references: [id], onDelete: Cascade)
 
   created_at   DateTime  @default(now())
 }
+
 
 //
 // OPTIONAL CATEGORY SYSTEM

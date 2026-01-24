@@ -1,22 +1,56 @@
 import { z } from "zod";
 
-export const EquipmentDTO = z.object({
-  name: z.string().min(2),
+// Base schema (used by both create + update)
+const baseEquipmentSchema = z.object({
+  name: z.string().optional(),
   description: z.string().optional(),
-  price: z.number().positive(),
-  stock: z.number().int().nonnegative(),
-  type: z.enum(["SALE", "LEASE", "BOTH"]),
-  specifications: z.any().optional(),
-  categoryId: z.string().uuid().optional(),
+  price: z.coerce.number().optional(),
+  stock: z.coerce.number().optional(),
+  type: z.string().optional(),
+  specifications: z
+    .string()
+    .optional()
+    .transform((val) => {
+      if (!val) return null;
+      try {
+        return JSON.parse(val);
+      } catch (e) {
+        throw new Error("Invalid JSON in specifications");
+      }
+    }),
 });
 
+// Full required schema for CREATE
+export const equipmentSchema = baseEquipmentSchema.extend({
+  name: z.string(),
+  description: z.string(),
+  price: z.coerce.number(),
+  stock: z.coerce.number(),
+  type: z.string(),
+});
+
+// CREATE validator (requires all fields)
 export const validateEquipment = (req, res, next) => {
   try {
-    const data = EquipmentDTO.parse(req.body);
-    req.validatedData = data;
+    req.body = equipmentSchema.parse(req.body);
     next();
   } catch (err) {
-    return res.status(400).json({ error: err.errors });
+    return res.status(400).json({
+      error: "Validation error",
+      details: err.errors ?? err.message,
+    });
   }
 };
 
+// UPDATE validator (allows partial update)
+export const validateEquipmentUpdate = (req, res, next) => {
+  try {
+    req.body = baseEquipmentSchema.parse(req.body);
+    next();
+  } catch (err) {
+    return res.status(400).json({
+      error: "Validation error",
+      details: err.errors ?? err.message,
+    });
+  }
+};

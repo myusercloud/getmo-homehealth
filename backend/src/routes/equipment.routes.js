@@ -1,9 +1,9 @@
 import express from "express";
 import { EquipmentController } from "../controllers/equipment.controller.js";
-import { validateEquipment } from "../dto/equipment.dto.js";
 import { upload } from "../config/multer.js";
+import { validateEquipment, validateEquipmentUpdate } from "../dto/equipment.dto.js";
 
-const router = express.Router();
+export const router = express.Router();
 
 router.get("/", EquipmentController.getAll);
 router.get("/:id", EquipmentController.getOne);
@@ -15,8 +15,7 @@ router.post(
   EquipmentController.create
 );
 
-router.put("/:id", validateEquipment, EquipmentController.update);
+
+router.put("/:id", validateEquipmentUpdate, EquipmentController.update);
 
 router.delete("/:id", EquipmentController.delete);
-
-export default router;

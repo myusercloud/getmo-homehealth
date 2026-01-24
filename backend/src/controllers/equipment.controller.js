@@ -1,17 +1,23 @@
-import cloudinary from "../config/cloudinary.js";
 import { EquipmentService } from "../services/equipment.service.js";
+import { uploadToSupabase } from "../utils/uploadSupabase.js";
+import slugify from "slugify";
 
 export const EquipmentController = {
   async create(req, res) {
     try {
-      const imageUrls = req.files.map((file) => file.path);
+      const data = req.body;
 
-      const equipment = await EquipmentService.create(
-        req.validatedData,
-        imageUrls
+      // Auto-generate slug
+      data.slug = slugify(data.name, { lower: true, strict: true });
+
+      // Upload images to Supabase
+      const imageUploads = await Promise.all(
+        req.files.map((file) => uploadToSupabase(file))
       );
 
-      res.json(equipment);
+      const equipment = await EquipmentService.create(data, imageUploads);
+
+      return res.status(201).json(equipment);
     } catch (error) {
       console.error(error);
       res.status(500).json({ error: "Failed to create equipment" });
@@ -19,22 +25,45 @@ export const EquipmentController = {
   },
 
   async getAll(req, res) {
-    const items = await EquipmentService.findAll();
-    res.json(items);
+    try {
+      const items = await EquipmentService.findAll();
+      res.json(items);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   },
 
   async getOne(req, res) {
-    const item = await EquipmentService.findOne(req.params.id);
-    res.json(item);
+    try {
+      const item = await EquipmentService.findOne(req.params.id);
+      res.json(item);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   },
 
   async update(req, res) {
-    const updated = await EquipmentService.update(req.params.id, req.body);
-    res.json(updated);
+    try {
+      const data = req.body;
+
+      // Regenerate slug only if name is changed
+      if (data.name) {
+        data.slug = slugify(data.name, { lower: true, strict: true });
+      }
+
+      const item = await EquipmentService.update(req.params.id, data);
+      res.json(item);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
   },
 
   async delete(req, res) {
-    await EquipmentService.delete(req.params.id);
-    res.json({ message: "Deleted successfully" });
-  }
+    try {
+      await EquipmentService.delete(req.params.id);
+      res.json({ message: "Equipment deleted" });
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  },
 };
