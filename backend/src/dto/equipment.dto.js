@@ -1,5 +1,18 @@
 import { z } from "zod";
 
+// Accepts EITHER string (JSON) OR object directly
+const specsSchema = z.union([
+  z.string().transform((val) => {
+    try {
+      return JSON.parse(val);
+    } catch {
+      throw new Error("Invalid JSON in specifications");
+    }
+  }),
+  z.record(z.any()), // object allowed
+  z.undefined(),
+]);
+
 // Base schema (used by both create + update)
 const baseEquipmentSchema = z.object({
   name: z.string().optional(),
@@ -7,20 +20,11 @@ const baseEquipmentSchema = z.object({
   price: z.coerce.number().optional(),
   stock: z.coerce.number().optional(),
   type: z.string().optional(),
-  specifications: z
-    .string()
-    .optional()
-    .transform((val) => {
-      if (!val) return null;
-      try {
-        return JSON.parse(val);
-      } catch (e) {
-        throw new Error("Invalid JSON in specifications");
-      }
-    }),
+  categoryId: z.string().optional().nullable(),
+  specifications: specsSchema.optional(),
 });
 
-// Full required schema for CREATE
+// CREATE (all required)
 export const equipmentSchema = baseEquipmentSchema.extend({
   name: z.string(),
   description: z.string(),
@@ -29,7 +33,6 @@ export const equipmentSchema = baseEquipmentSchema.extend({
   type: z.string(),
 });
 
-// CREATE validator (requires all fields)
 export const validateEquipment = (req, res, next) => {
   try {
     req.body = equipmentSchema.parse(req.body);
@@ -42,7 +45,6 @@ export const validateEquipment = (req, res, next) => {
   }
 };
 
-// UPDATE validator (allows partial update)
 export const validateEquipmentUpdate = (req, res, next) => {
   try {
     req.body = baseEquipmentSchema.parse(req.body);

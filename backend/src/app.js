@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import { router as equipmentRoutes } from "./routes/equipment.routes.js";
+import authRoutes from "./routes/auth.routes.js";
 import morgan from "morgan";
 
 console.log("Equipment routes loaded!");
@@ -15,6 +16,7 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Getmo Backend (web)");
 });
 
+app.use("/api/auth", authRoutes);
 app.use("/api/equipment", equipmentRoutes);
 
 
