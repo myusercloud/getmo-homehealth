@@ -5,24 +5,40 @@ const prisma = new PrismaClient();
 
 
 export const EquipmentService = {
-  async create(data, imageUrls) {
-    // Auto-generate slug from name
-    const slug = slugify(data.name);
-
-    return prisma.equipment.create({
+  async create(data, imageFiles) {
+    const equipment = await prisma.equipment.create({
       data: {
-        ...data,
-        slug,
-        specifications: data.specifications || {},
-
-        images: {
-          create: imageUrls.map((url, index) => ({
-            url,
-            isPrimary: index === 0,
-            sortOrder: index,
-          })),
-        },
+        name: data.name,
+        slug: slugify(data.name, { lower: true }),
+        description: data.description || "",
+        price: data.price,
+        stock: data.stock,
+        type: data.type,
       },
+    });
+
+    if (imageFiles.length > 0) {
+      await prisma.equipmentImage.createMany({
+        data: imageFiles.map((file, index) => ({
+          equipmentId: equipment.id,
+          url: file.path, 
+          isPrimary: index === 0,
+          sortOrder: index,
+        })),
+      });
+    }
+
+    return equipment;
+  },
+
+  async update(id, data) {
+    if (data.name) {
+      data.slug = slugify(data.name, { lower: true });
+    }
+
+    return prisma.equipment.update({
+      where: { id },
+      data,
       include: { images: true },
     });
   },
@@ -41,18 +57,7 @@ export const EquipmentService = {
     });
   },
 
-  async update(id, data) {
-    // Slug should update if the name changes
-    if (data.name) {
-      data.slug = slugify(data.name);
-    }
 
-    return prisma.equipment.update({
-      where: { id },
-      data,
-      include: { images: true },
-    });
-  },
 
   async delete(id) {
     // Must delete images first because of FK constraints

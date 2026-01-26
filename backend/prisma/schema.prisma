@@ -14,20 +14,20 @@ datasource db {
 //
 
 model Equipment {
-  id             String            @id @default(uuid())
-  name           String
-  slug           String            @unique
-  description    String?
-  price          Float
-  stock          Int               @default(0)
-  type           EquipmentType     @default(SALE)
-  status         StockStatus       @default(IN_STOCK)
-  specifications Json?
-  categoryId     String?
-  category       Category?         @relation(fields: [categoryId], references: [id])
-  images         EquipmentImage[]
-  created_at     DateTime          @default(now())
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  price       Float
+  stock       Int       @default(0)
+  type        EquipmentType @default(SALE)
+  status      StockStatus @default(IN_STOCK)
+
+  images      EquipmentImage[]
+
+  created_at  DateTime @default(now())
 }
+
 
 //
 // MULTIPLE IMAGES
@@ -48,14 +48,7 @@ model EquipmentImage {
 //
 // OPTIONAL CATEGORY SYSTEM
 //
-model Category {
-  id          String        @id @default(uuid())
-  name        String
-  slug        String        @unique
-  equipments  Equipment[]
 
-  created_at  DateTime      @default(now())
-}
 
 //
 // USER MODEL (unchanged)
@@ -65,7 +58,6 @@ model User {
   name       String
   email      String   @unique
   password   String
-  role       String   @default("user")
   created_at DateTime @default(now())
 }
 
