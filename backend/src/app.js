@@ -21,6 +21,11 @@ app.get("/", (req, res) => {
   res.send("Welcome to the Getmo Backend (web)");
 });
 
+app.get("/ping", (req, res) => {
+  res.status(200).json({ message: "Server is awake" });
+});
+
+
 app.use("/api/auth", authRoutes);
 app.use("/api/equipment", equipmentRoutes);
 
